@@ -2,7 +2,7 @@ import {Router} from 'express';
 import { fetchCountryData, fetchExchangeRate } from '../API/api.js';
 import { pool } from '../database.js';
 
-const router = Router();
+export const router = Router();
 
 
 const countryData = await fetchCountryData();
@@ -21,17 +21,24 @@ const enrichedData = countryData.map(country => {
 
 
 
-const countryWithGDP = enrichedData.map(country=>{
+const countryWithGDP = enrichedData.map(country => {
+    const currencyCode = country.currencies?.[0]?.code;
+    const exchangeRate = country.exchangeRate;
     const population = country.population;
-    const exchange_rate = country.exchangeRate;
     const randomMultiplier = Math.random() * (2000 - 1000) + 1000;
-    const estimated_gdp = population * randomMultiplier / exchange_rate;
+    const estimated_gdp = exchangeRate ? population * randomMultiplier / exchangeRate : null;
+    
     return {
-        ...country, estimated_gdp: estimated_gdp || null
+        name: country.name,
+        capital: country.capital,
+        region: country.region,
+        population: population,
+        currency_code: currencyCode,
+        exchange_rate: exchangeRate,
+        estimated_gdp: estimated_gdp,
+        flag_url: country.flag
     };
-})
-
-import { pool } from './db.js'; 
+}); 
 
 router.post('/countries/refresh', async (req, res) => {
     const { countryWithGDP } = req.body;

@@ -1,18 +1,39 @@
 import express from 'express';
 import 'dotenv/config';
-import { router } from './routes/country.routes.js';
+import {initDatabase}  from './database.js';
+import router from './routes/country.routes.js';
+
 
 
 const app = express();
 
+const PORT = process.env.PORT || 3000;
+
 app.use(express.json());
-app.use('/api', router);
 
+app.use('/countries', router);
+app.use('/status', router);
 
-const PORT = process.env.PORT;
+app.use((req, res) => {
+  res.status(404).json({ error: 'Endpoint not found' });
+});
 
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Internal server error' });
+});
 
+async function startServer() {
+  try {
+    await initDatabase();
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+      console.log(`http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+}
 
-app.listen(PORT, '0.0.0.0', ()=>{
-    console.log(`Server is running on port ${PORT}`);
-})
+startServer();

@@ -81,7 +81,6 @@ export async function refreshCountries(req, res) {
 
     await connection.commit();
 
-    // Try to generate summary image (non-critical - will fail on Railway without canvas deps)
     try {
       const [topCountries] = await connection.query(
         'SELECT name, estimated_gdp FROM countries WHERE estimated_gdp IS NOT NULL ORDER BY estimated_gdp DESC LIMIT 5'
@@ -95,10 +94,9 @@ export async function refreshCountries(req, res) {
         lastRefreshed: metadata[0].last_refreshed_at
       });
       
-      console.log('✅ Summary image generated successfully');
+      console.log('Summary image generated successfully');
     } catch (imageError) {
-      console.warn('⚠️ Image generation failed (non-critical):', imageError.message);
-      // Continue without image - this is optional functionality
+      console.warn('Image generation failed (non-critical):', imageError.message);
     }
 
     res.json({

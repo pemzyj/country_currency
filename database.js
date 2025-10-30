@@ -7,42 +7,41 @@ import fs from 'fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Try .env.local first (development), then .env (production/Railway)
 const envLocalPath = path.join(__dirname, '.env.local');
 const envPath = path.join(__dirname, '.env');
 
 let envFileUsed;
 if (fs.existsSync(envLocalPath)) {
-  console.log('📁 Loading .env.local (development)');
+  console.log('Loading .env.local (development)');
   dotenv.config({ path: envLocalPath });
   envFileUsed = '.env.local';
 } else if (fs.existsSync(envPath)) {
-  console.log('📁 Loading .env (production)');
+  console.log('Loading .env (production)');
   dotenv.config({ path: envPath });
   envFileUsed = '.env';
 } else {
-  console.log('⚠️ No .env file found - using Railway environment variables');
+  console.log('No .env file found - using Railway environment variables');
   envFileUsed = 'none';
 }
 
-console.log('🔍 Environment Variables:');
-console.log('   Loaded from:', envFileUsed);
-console.log('   DB_HOST:', process.env.DB_HOST);
-console.log('   DB_USER:', process.env.DB_USER);
-console.log('   DB_PASSWORD:', process.env.DB_PASSWORD ? '***exists***' : '⚠️ MISSING!');
-console.log('   DB_NAME:', process.env.DB_NAME);
-console.log('   DB_PORT:', process.env.DB_PORT);
-console.log('   MYSQL_URL:', process.env.MYSQL_URL ? 'exists' : 'not set');
+console.log('Environment Variables:');
+console.log('Loaded from:', envFileUsed);
+console.log('DB_HOST:', process.env.DB_HOST);
+console.log('DB_USER:', process.env.DB_USER);
+console.log('DB_PASSWORD:', process.env.DB_PASSWORD ? '***exists***' : 'MISSING!');
+console.log('DB_NAME:', process.env.DB_NAME);
+console.log('DB_PORT:', process.env.DB_PORT);
+console.log('MYSQL_URL:', process.env.MYSQL_URL ? 'exists' : 'not set');
 
 let poolConfig;
 
 // Railway provides MYSQL_URL
 if (process.env.MYSQL_URL) {
-  console.log('✅ Using Railway MYSQL_URL');
+  console.log('Using Railway MYSQL_URL');
   poolConfig = process.env.MYSQL_URL;
 } else {
   // Local development
-  console.log('✅ Using local MySQL');
+  console.log('Using local MySQL');
   poolConfig = {
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',

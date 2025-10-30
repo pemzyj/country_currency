@@ -1,16 +1,63 @@
 import mysql from 'mysql2/promise';
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
 
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT || 3306,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-});
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Try .env.local first (development), then .env (production/Railway)
+const envLocalPath = path.join(__dirname, '.env.local');
+const envPath = path.join(__dirname, '.env');
+
+let envFileUsed;
+if (fs.existsSync(envLocalPath)) {
+  console.log('📁 Loading .env.local (development)');
+  dotenv.config({ path: envLocalPath });
+  envFileUsed = '.env.local';
+} else if (fs.existsSync(envPath)) {
+  console.log('📁 Loading .env (production)');
+  dotenv.config({ path: envPath });
+  envFileUsed = '.env';
+} else {
+  console.log('⚠️ No .env file found - using Railway environment variables');
+  envFileUsed = 'none';
+}
+
+console.log('🔍 Environment Variables:');
+console.log('   Loaded from:', envFileUsed);
+console.log('   DB_HOST:', process.env.DB_HOST);
+console.log('   DB_USER:', process.env.DB_USER);
+console.log('   DB_PASSWORD:', process.env.DB_PASSWORD ? '***exists***' : '⚠️ MISSING!');
+console.log('   DB_NAME:', process.env.DB_NAME);
+console.log('   DB_PORT:', process.env.DB_PORT);
+console.log('   MYSQL_URL:', process.env.MYSQL_URL ? 'exists' : 'not set');
+
+let poolConfig;
+
+// Railway provides MYSQL_URL
+if (process.env.MYSQL_URL) {
+  console.log('✅ Using Railway MYSQL_URL');
+  poolConfig = process.env.MYSQL_URL;
+} else {
+  // Local development
+  console.log('✅ Using local MySQL');
+  poolConfig = {
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME || 'country_currency',
+    port: parseInt(process.env.DB_PORT || '3306'),
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+  };
+}
+
+const pool = mysql.createPool(poolConfig);
+
+
 
 export async function initDatabase() {
   try {
